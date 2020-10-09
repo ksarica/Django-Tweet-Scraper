@@ -1,0 +1,9 @@
+1- Make sure required python packages installed. (Beautifulsoup.Requests,Selenium,Django)
+2- Locate the Selenium Webdriver path from the Scraper\scrape_tweets.py file
+3- Locate this file via cmd prompt
+4- Run the web server with the command python manage.py runserver
+5- Locate cd Scraper
+6- Run scrape_tweets.py with python scrape_tweets.py
+7- After running the scraper successfuly, CSV file will be created in the same directory
+8- Upload the CSV file to the web server
+9- After uploading you can see the tweets by navigating Display Tweets
