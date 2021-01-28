@@ -1,8 +1,10 @@
 import time
-import requests
 import csv
 from bs4 import BeautifulSoup
 from selenium import webdriver
+from selenium.common.exceptions import SessionNotCreatedException
+from webdriver_manager.chrome import ChromeDriverManager
+from os import path
 
 #  ----------------------  GLOBAL VARIABLES  ----------------------
 scraped_elements_count = 0
@@ -30,13 +32,26 @@ class DriverPathError(Exception):
 
 #  ----------------------   FUNCTIONS  ----------------------
 def run_browser():
-    try:
-        driver_path = 'C:\\bin\\chromedriver.exe'  # locate selenium driver path
-        web_browser = webdriver.Chrome(executable_path=driver_path)
-    except RuntimeError:
-        raise DriverPathError('There is a problem while running webdriver. Please check driver path')
+    # driver_path = 'C:\\bin\\chromedriver.exe' 
+    if path.exists('selenium_driver_path.txt'):  # after the first initialization you dont have to enter the driver path all the time
+        with open('selenium_driver_path.txt','r') as file:
+            driver_path = file.read()
+    else:    # if file is not created, create and save the driver path for the next runs
+        driver_path = input('Please enter the selenium driver path here: ')
+        with open('selenium_driver_path.txt','w') as file:
+            file.write(driver_path)
+    if path.exists(driver_path):
+        try:
+            web_browser = webdriver.Chrome(executable_path=driver_path)
+        except (RuntimeError):
+                print('There is a problem while running webdriver. Please check driver path\n')
+        except SessionNotCreatedException:
+            print('Selenium web driver version is not updated. Updating...')
+            web_browser = webdriver.Chrome(ChromeDriverManager().install())
+    else:
+        raise FileNotFoundError('Selenium Web Driver is not found. Please check driver path')
+                    
     return web_browser
-
 
 def scroll_page():
     last_height = browser.execute_script('return document.body.scrollHeight')
@@ -67,8 +82,8 @@ def scrape_data():
             'class': 'css-901oao css-bfa6kz r-111h2gw r-18u37iz r-1qd0xha r-a023e6 r-16dba41 r-ad9z0x r-bcqeeo '
                      'r-qvutc0'}).get_text().strip()
         tweet_date = element.find("a", attrs={
-            'class': 'r-111h2gw r-1loqt21 r-1q142lx r-1qd0xha r-a023e6 r-16dba41 r-ad9z0x r-bcqeeo r-3s2u2q r-qvutc0 '
-                     'css-4rbku5 css-18t94o4 css-901oao'})
+                    'class': 'css-4rbku5 css-18t94o4 css-901oao r-111h2gw r-1loqt21 r-1q142lx r-1qd0xha r-a023e6 r-16dba41 \
+                        r-ad9z0x r-bcqeeo r-3s2u2q r-qvutc0'})
         tweet_text = element.find('div', attrs={
             'class': 'css-901oao r-jwli3a r-1qd0xha r-a023e6 r-16dba41 r-ad9z0x r-bcqeeo r-bnwqim r-qvutc0'}) \
             .get_text().strip()
@@ -129,20 +144,27 @@ browser = run_browser()
 browser.delete_all_cookies()  # to prevent blocking
 browser.get(source_url)  # navigate to destination site
 
+current_time = 0
+max_waiting_time = 30
 while not check_if_page_loaded():
     print('\n----- Web page is not loaded yet waiting for another 1 second -----\n')
     time.sleep(1)
+    current_time += 1
+    if current_time == max_waiting_time:
+        print("Page could not be loaded. Check your internet connection.")
+        browser.close()
+        break
 
-print('\n----- Web page loaded successfully ! -----\n')
+if current_time < max_waiting_time:
+    print('\n----- Web page loaded successfully ! -----\n')
+    # get everything about tweets
+    for i in range(scroll_max):
+        scrape_data()
+        scroll_page()
 
-# get everything about tweets
-for i in range(scroll_max):
-    scrape_data()
-    scroll_page()
+    export_to_csv_file(scraped_elements)
+    print(f'\n----- {scraped_elements_count} Tweets Exported To CSV File ! -----\n')
+    browser.close()
 
-export_to_csv_file(scraped_elements)
-print(f'\n----- {scraped_elements_count} Tweets Exported To CSV File ! -----\n')
-browser.close()
-
-# for index in range(15):
-#    print('{0}.Tweet:\n{1}\n'.format(str(index + 1), str(scraped_elements[index])))
+    # for index in range(15):
+    #    print('{0}.Tweet:\n{1}\n'.format(str(index + 1), str(scraped_elements[index])))
