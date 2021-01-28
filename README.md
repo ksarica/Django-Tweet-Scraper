@@ -1,4 +1,4 @@
-# qg6kQV30LfgpIXHv
+# Django Tweet Scraper
 
 ![csv](https://user-images.githubusercontent.com/46609011/95590707-0c4d0380-0a4f-11eb-8c80-a031c6b57c7c.png)
 
