@@ -1,4 +1,5 @@
 # Django Tweet Scraper
+This project is for scraping desired tweets from Twitter by using Python Beautiful Soup library and displaying on the web by using Django Framework. 
 
 ![csv](https://user-images.githubusercontent.com/46609011/95590707-0c4d0380-0a4f-11eb-8c80-a031c6b57c7c.png)
 
